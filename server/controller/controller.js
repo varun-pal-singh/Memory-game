@@ -199,11 +199,18 @@ exports.registerEmail = async (req, res) => {
       from: process.env.myEmail,
       to: email,
       subject: "Your Access Token",
-      html: `
+    //   html: `
+    //     <p>Hello,</p>
+    //     <p>Here is your access token: <strong>${token}</strong></p>
+    //     <p>Please keep it secure.</p>
+    //     <p>Here's the link to the test: <a href="https://game-memory-cniu.vercel.app/">Click Here</a></p>
+    //     <p>Best regards,<br>Rmoney India</p>
+    // `
+     html: `
         <p>Hello,</p>
         <p>Here is your access token: <strong>${token}</strong></p>
         <p>Please keep it secure.</p>
-        <p>Here's the link to the test: <a href="https://game-memory-cniu.vercel.app/">Click Here</a></p>
+        <p>Here's the link to the test: <a href="http://game1.rmoneyindia.in">Click Here</a></p>
         <p>Best regards,<br>Rmoney India</p>
     `
     };
@@ -236,7 +243,8 @@ exports.authenticateEmail = async (req, res) => {
   }
 
   try {
-    // Find the user in the database
+    // Find the user in the database 
+    // /*
     const user = await RegisterUser.findOne({ email });
 
     if (!user) {
@@ -266,7 +274,7 @@ exports.authenticateEmail = async (req, res) => {
     // Delete the user entry after successful authentication
     await RegisterUser.deleteOne({ email });
     console.log("deleted");
-    
+    // */
     res.status(200).json({ success: true, message: "Authentication successful! Access granted." });
 
   } catch (error) {

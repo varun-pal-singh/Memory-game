@@ -18,7 +18,9 @@ const UserForm = ({ formData, setFormData, setIsRunning, setFormSubmitted }) => 
 
     // Send the email and token to the backend for authentication
     try {
-      const response = await fetch("https://game-memory-opal.vercel.app/authenticate", {
+      // const response = await fetch("https://game-memory-opal.vercel.app/authenticate", {
+      const response = await fetch("http://192.168.10.116:3001/authenticate", {
+      // const response = await fetch("http://localhost:3001/authenticate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

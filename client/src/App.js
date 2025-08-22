@@ -32,9 +32,10 @@ const App = () => {
   }, [timeTaken]);
 
   useEffect(() => {
-    if (level === 6) {
+    if (level === 6) {      // after 5 level game will be over
       setIsRunning(false);
       alert("Game Completed!");
+      return;
     }
   }, [level]);
 
@@ -46,7 +47,8 @@ const App = () => {
 
   const postData = async () => {
     try {
-      const response = await axios.post(`https://game-memory-opal.vercel.app/`, formData);
+      // const response = await axios.post(`https://game-memory-opal.vercel.app/`, formData);
+      const response = await axios.post(`http://192.168.10.116:3001`, formData);
       if (response.data.success) {
         console.log("User data saved successfully:", response.data);
       } else {
