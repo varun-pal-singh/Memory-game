@@ -7,6 +7,8 @@ import AdminForm from "./Components/AdminForm";
 import axios from "axios";
 import "./App.css"; 
 
+const API_URL = process.env.REACT_APP_API_URL || '';
+
 const App = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -48,7 +50,8 @@ const App = () => {
   const postData = async () => {
     try {
       // const response = await axios.post(`https://game-memory-opal.vercel.app/`, formData);
-      const response = await axios.post(`http://192.168.10.116:3001`, formData);
+      // const response = await axios.post(`http://192.168.10.116:3001`, formData);
+      const response = await axios.post(`${API_URL}/api`, formData);
       if (response.data.success) {
         console.log("User data saved successfully:", response.data);
       } else {
