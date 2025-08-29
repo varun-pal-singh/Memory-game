@@ -15,6 +15,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Routes
+// app.use("/", router);
+app.use("/api", router);  // it automatically prepend by "/api" to all backend routes
+
 app.use(express.static(path.join(__dirname, "..", "client", "build")));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
@@ -33,10 +37,6 @@ mongoose.connect(DB_URL, {
 })
   .then(() => console.log("MongoDB connected"))
   .catch((error) => console.error("MongoDB connection error:", error));
-
-// Routes
-// app.use("/", router);
-app.use("/api", router);  // it automatically prepend by "/api" to all backend routes
 
 // Start server
 app.listen(process.env.PORT || 3000, (err) => {
