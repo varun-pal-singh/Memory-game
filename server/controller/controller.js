@@ -210,7 +210,7 @@ exports.registerEmail = async (req, res) => {
         <p>Hello,</p>
         <p>Here is your access token: <strong>${token}</strong></p>
         <p>Please keep it secure.</p>
-        <p>Here's the link to the test: <a href="http://game1.rmoneyindia.in">Click Here</a></p>
+        <p>Here's the link to the test: <a href="http://192.168.10.116:3000">Click Here </a> for Memory Test</p>
         <p>Best regards,<br>Rmoney India</p>
     `
     };
