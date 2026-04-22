@@ -74,8 +74,8 @@ const App = () => {
                   <div className="timer">
                     <Timer isRunning={isRunning} setIsRunning={setIsRunning} setTimeTaken={setTimeTaken} />
                   </div>
-                  {level === 6 ? null : <div className="level-display">Level {level}</div>}
-                  {level === 6 ? null : (
+                  {level === 5 ? null : <div className="level-display">Level {level}</div>}
+                  {level === 5 ? null : (
                     <Grid rows={level + 1} columns={level + 2} setLevel={setLevel} level={level} />
                   )}
                 </div>
