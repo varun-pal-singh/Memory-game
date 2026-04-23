@@ -3,11 +3,11 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Grid from "./Components/Grid";
 import UserForm from "./Components/UserForm";
 import Timer from "./Components/Timer";
-import AdminForm from "./Components/AdminForm"; 
+import AdminForm from "./Components/AdminForm";
 import axios from "axios";
-import "./App.css"; 
+import "./App.css";
 
-const API_URL = process.env.REACT_APP_API_URL || '';
+// const API_URL = process.env.REACT_APP_API_URL || '';
 
 const App = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +16,8 @@ const App = () => {
     email: "",
     timeTaken: "0",
   });
+
+  const finalLevel = 5; // after 5 level game will be over
 
   const [level, setLevel] = useState(1);
   const [timeTaken, setTimeTaken] = useState(null);
@@ -34,7 +36,7 @@ const App = () => {
   }, [timeTaken]);
 
   useEffect(() => {
-    if (level === 6) {      // after 5 level game will be over
+    if (level === finalLevel) {      
       setIsRunning(false);
       alert("Game Completed!");
       return;
@@ -51,7 +53,7 @@ const App = () => {
     try {
       // const response = await axios.post(`https://game-memory-opal.vercel.app/`, formData);
       // const response = await axios.post(`http://192.168.10.116:3001`, formData);
-      const response = await axios.post(`${API_URL}/api`, formData);
+      const response = await axios.post(`/api/saveUserResult`, formData);
       if (response.data.success) {
         console.log("User data saved successfully:", response.data);
       } else {
@@ -74,8 +76,8 @@ const App = () => {
                   <div className="timer">
                     <Timer isRunning={isRunning} setIsRunning={setIsRunning} setTimeTaken={setTimeTaken} />
                   </div>
-                  {level === 5 ? null : <div className="level-display">Level {level}</div>}
-                  {level === 5 ? null : (
+                  {level === finalLevel ? null : <div className="level-display">Level {level}</div>}
+                  {level === finalLevel ? null : (
                     <Grid rows={level + 1} columns={level + 2} setLevel={setLevel} level={level} />
                   )}
                 </div>

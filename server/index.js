@@ -6,7 +6,8 @@ const mongoose      = require("mongoose");
 const router        = require("./router/index.js");
 const path          = require("path");
 
-dotenv.config({ path: "config/config.env" });
+dotenv.config({ path: "./config/.env" });
+dotenv.config();
 const DB_URL = process.env.db;
 const app = express();
 
@@ -25,10 +26,30 @@ app.get('*', (req, res) => {
 });
 
 // Correct CORS configuration
+// app.use(cors({
+//   origin: ['http://localhost:3000', 'http://192.168.10.116:3000', 'http://103.69.170.74:3000'],
+//   credentials: true
+// }));
+
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000'];
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://192.168.10.116:3000', 'http://103.69.170.74:3000'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
+mongoose.set('strictQuery', false);
+
+mongoose.connect(DB_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
 
 // Database connection
 mongoose.connect(DB_URL, {

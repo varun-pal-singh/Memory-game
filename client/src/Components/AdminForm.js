@@ -3,7 +3,7 @@ import axios from "axios";
 import "./AdminForm.css";
 import PopupMessage from "./PopupMessage";
 
-const API_URL = process.env.REACT_APP_API_URL || '';
+// const API_URL = process.env.REACT_APP_API_URL || '';
 
 const AdminForm = () => {
   const [email, setEmail] = useState("");
@@ -11,14 +11,15 @@ const AdminForm = () => {
   const [popupMessage, setPopupMessage] = useState("");
 
   const handleSubmit = async (e) => {
-    console.log("hello bhaiya");
+    console.log("register button clicked with email:", email);
     
     e.preventDefault();
     try {
       // const response = await axios.post("https://game-memory-opal.vercel.app/register", { email });
       // const response = await axios.post("http://localhost:3001/register", { email });
       // const response = await axios.post("http://192.168.10.116:3001/register", { email });
-      const response = await axios.post(`${API_URL}/api/register`, { email });
+      // const response = await axios.post(`${API_URL}/api/register`, { email });
+      const response = await axios.post(`/api/register`, { email });
       
       if (response.data.success) {
         setAccessToken(response.data.accessToken);

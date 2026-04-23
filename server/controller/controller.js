@@ -9,19 +9,31 @@ const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
 
 dotenv.config({ path: "./config/config.env" });
+// require("dotenv").config();
 
 const secretKey = process.env.JWT_SECRET
+const frontendUrl = process.env.FRONTEND_URL || "https://google.com"; // Default to Google if FRONTEND_URL is not set
 
 const transporter = nodemailer.createTransport({
-  service: "gmail", // Change this to your email service provider
+  // service: "gmail", // Change this to your email service provider
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.myEmail,
     pass: process.env.myPass,
   }
 });
 
+exports.welcomeMessage = (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to the Memory Game API!",
+  });
+};
 
-exports.get = async (req, res) => {
+
+exports.getUsersInfo = async (req, res) => {
   try {
     // Find all users in the 'User' collection
     const users = await UserInfo.find();
@@ -34,6 +46,8 @@ exports.get = async (req, res) => {
       });
     }
 
+    console.log("Users retrieved from database:", users);
+
     // Return the list of users
     res.status(200).json({
       success: true,
@@ -49,12 +63,14 @@ exports.get = async (req, res) => {
   }
 };
 
-exports.getUsers = async (req, res) => {
+exports.getRegisteredUsers = async (req, res) => {
+  // e.preventDefault();
   try {
-    // Find all users in the 'User' collection
-    const users = await RegisterUser.find();
+    // console.log("---- getUsers API Hit Hua ----");
 
-    // Check if there are no users found
+    const users = await RegisterUser.find();
+    console.log("Registered users retrieved from database:", users);
+
     if (users.length === 0) {
       return res.status(404).json({
         success: false,
@@ -62,42 +78,62 @@ exports.getUsers = async (req, res) => {
       });
     }
 
-    // Return the list of users
     res.status(200).json({
       success: true,
       message: "Users retrieved successfully",
       data: users,
     });
   } catch (e) {
-    // Handle errors
+    console.error("Error in getUsers:", e.message);
     res.status(400).json({
       success: false,
       message: e.message,
     });
-  }
-};
+  };
+}
 
 exports.post = async (req, res) => {
   try {
     // Get data from the request body
     const { firstName, lastName, email, timeTaken } = req.body;
+    /*
+        // Create a new instance of the User model
+        const newUser = new UserInfo({
+          firstName,
+          lastName,
+          email,
+          timeTaken
+        });
+    
+        // Save the new user to the database
+        await newUser.save();
+    
+        // Respond with success message
+        res.status(201).json({
+          success: true,
+          message: "User data saved successfully",
+          data: newUser
+        });
+    */
 
-    // Create a new instance of the User model
-    const newUser = new UserInfo({
-      firstName,
-      lastName,
-      email,
-      timeTaken
-    });
+    const updatedUser = await UserInfo.findOneAndUpdate(
+      { email: email },
+      {
+        firstName: firstName,
+        lastName: lastName,
+        timeTaken: timeTaken
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true
+      }
+    );
 
-    // Save the new user to the database
-    await newUser.save();
-
-    // Respond with success message
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: "User data saved successfully",
-      data: newUser
+      message: "Game data saved/updated successfully!",
+      data: updatedUser
     });
 
   } catch (e) {
@@ -121,20 +157,44 @@ exports.exportToExcel = async (req, res) => {
       });
     }
 
-    // Prepare data for the Excel file
+    const now = new Date();
+
+    const timestamp = now.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/[/:, ]/g, '-');
+
+    console.log("Generated Timestamp:", timestamp);
+
     const userData = users.map((user) => ({
       'First Name': user.firstName,
       'Last Name': user.lastName,
       'Email': user.email,
       'Time Taken': user.timeTaken,
-      'Created At': user.createdAt,
-      'Updated At': user.updatedAt,
+      // 'Created At': user.createdAt,
+      // 'Updated At': user.updatedAt,
+      'Date': new Date(user.createdAt).toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      })
     }));
 
     // Create a new workbook
     const worksheet = XLSX.utils.json_to_sheet(userData);
+    /*
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
 
     // Write workbook to buffer
     const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
@@ -145,6 +205,14 @@ exports.exportToExcel = async (req, res) => {
 
     // Send the buffer as a response (this will trigger the download)
     res.send(buffer);
+    */
+
+    const csvData = XLSX.utils.sheet_to_csv(worksheet);
+
+    res.setHeader("Content-Disposition", `attachment; filename=Report-${timestamp}.csv`);
+    res.setHeader("Content-Type", "text/csv");
+
+    res.send(csvData);
 
   } catch (e) {
     // Handle errors
@@ -156,6 +224,7 @@ exports.exportToExcel = async (req, res) => {
   }
 };
 
+/*
 exports.registerEmail = async (req, res) => {
   try {
     const { email } = req.body;
@@ -179,7 +248,7 @@ exports.registerEmail = async (req, res) => {
       const existingToken = await RegisterUser.findOne({ accessToken: token });
       if (!existingToken) isUnique = true; // Ensure token is unique
     }
-    
+
     console.log("Generated Token:", token);
 
     // Prevent null accessToken before saving
@@ -199,18 +268,18 @@ exports.registerEmail = async (req, res) => {
       from: process.env.myEmail,
       to: email,
       subject: "Your Access Token",
-    //   html: `
-    //     <p>Hello,</p>
-    //     <p>Here is your access token: <strong>${token}</strong></p>
-    //     <p>Please keep it secure.</p>
-    //     <p>Here's the link to the test: <a href="https://game-memory-cniu.vercel.app/">Click Here</a></p>
-    //     <p>Best regards,<br>Rmoney India</p>
-    // `
-     html: `
+      //   html: `
+      //     <p>Hello,</p>
+      //     <p>Here is your access token: <strong>${token}</strong></p>
+      //     <p>Please keep it secure.</p>
+      //     <p>Here's the link to the test: <a href="https://game-memory-cniu.vercel.app/">Click Here</a></p>
+      //     <p>Best regards,<br>Rmoney India</p>
+      // `
+      html: `
         <p>Hello,</p>
         <p>Here is your access token: <strong>${token}</strong></p>
         <p>Please keep it secure.</p>
-        <p>Here's the link to the test: <a href="http://192.168.10.116:3000">Click Here </a> for Memory Test</p>
+        <p>Here's the link to the test: <a href="${frontendUrl}">Click Here </a> for Memory Test</p>
         <p>Best regards,<br>Rmoney India</p>
     `
     };
@@ -233,7 +302,68 @@ exports.registerEmail = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+*/
 
+exports.registerEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log("Received Email:", email);
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required." });
+    }
+
+    const existingUser = await RegisterUser.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
+    }
+
+    let token;
+    let isUnique = false;
+    while (!isUnique) {
+      token = Math.floor(100000 + Math.random() * 900000).toString();
+      const existingToken = await RegisterUser.findOne({ accessToken: token });
+      if (!existingToken) isUnique = true;
+    }
+
+    const newUser = new RegisterUser({ email, accessToken: token });
+    await newUser.save();
+
+    res.status(201).json({
+      success: true,
+      accessToken: token,
+      message: "User registered successfully. Token is being sent to email."
+    });
+
+    const mailOptions = {
+      from: process.env.myEmail,
+      to: email,
+      subject: "Your Access Token",
+      html: `
+        <p>Hello,</p>
+        <p>Here is your access token: <strong>${token}</strong></p>
+        <p>Please keep it secure.</p>
+        <p>Here's the link to the test: <a href="${frontendUrl}">Click Here </a> for Memory Test</p>
+        <p>Best regards,<br>Rmoney India</p>
+    `
+    };
+
+    transporter.sendMail(mailOptions).catch(err => {
+      console.error(`Background Email Dispatch Failed for ${email}:`, err);
+    });
+
+  } catch (error) {
+    console.error("Error in registering user:", error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Duplicate Email or Access Token" });
+    }
+
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+  }
+};
 
 exports.authenticateEmail = async (req, res) => {
   const { email, accessToken } = req.body;
@@ -264,10 +394,10 @@ exports.authenticateEmail = async (req, res) => {
     // });
 
     // Check if the provided token matches the stored one
-    
+
     if (user.accessToken !== accessToken) {
       console.log("here");
-      
+
       return res.status(401).json({ success: false, message: "Invalid token." });
     }
 
